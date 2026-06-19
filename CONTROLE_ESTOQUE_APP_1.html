@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Natural Gurt · Estoque</title>
+<style>
+:root{
+  --verde:#1B5E20;--verde-md:#2E7D32;--verde-lt:#43A047;--verde-bg:#F1F8F2;
+  --branco:#FFFFFF;--cinza-lt:#F5F5F5;--cinza-bd:#E0E0E0;--cinza-txt:#757575;
+  --texto:#212121;--erro:#C62828;--erro-bg:#FFEBEE;--laranja:#E65100;--vermelho:#B71C1C;
+  --radius:12px;--shadow:0 2px 12px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--verde-bg);color:var(--texto);min-height:100dvh;padding-bottom:48px;}
+.tela{display:none;}.tela.ativa{display:block;}
+header{background:var(--verde);color:#fff;padding:18px 16px 14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.logo-row{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:#fff;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+header h1{font-size:17px;font-weight:700;line-height:1.2;}
+header p{font-size:11px;opacity:.75;margin-top:2px;}
+.header-right{position:absolute;right:14px;top:16px;display:flex;gap:8px;}
+.btn-icon{background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;padding:7px 9px;font-size:16px;cursor:pointer;}
+.steps-bar{display:flex;background:var(--verde-md);}
+.step-tab{flex:1;text-align:center;padding:9px 2px;font-size:10px;color:rgba(255,255,255,.5);font-weight:700;border-bottom:3px solid transparent;transition:.2s;letter-spacing:.3px;}
+.step-tab.ativo{color:#fff;border-bottom-color:#A5D6A7;}.step-tab.feito{color:rgba(255,255,255,.7);}
+.passo{display:none;padding:16px;}.passo.ativo{display:block;}
+.card{background:var(--branco);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px;}
+.card-titulo{font-size:12px;font-weight:700;color:var(--verde);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.card-titulo::before{content:'';display:block;width:4px;height:16px;background:var(--verde-lt);border-radius:2px;}
+label{display:block;font-size:11px;font-weight:700;color:var(--cinza-txt);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+label .req{color:var(--erro);margin-left:2px;}
+.fg{margin-bottom:14px;}
+select,input[type=text],input[type=number],input[type=date],input[type=password]{width:100%;padding:12px 13px;border:1.5px solid var(--cinza-bd);border-radius:8px;font-size:15px;color:var(--texto);background:var(--branco);appearance:none;-webkit-appearance:none;outline:none;transition:border-color .15s,box-shadow .15s;}
+select:focus,input:focus{border-color:var(--verde-lt);box-shadow:0 0 0 3px rgba(67,160,71,.15);}
+select:disabled,input:disabled{background:var(--cinza-lt);color:var(--cinza-txt);cursor:not-allowed;}
+.sw{position:relative;}.sw::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--cinza-txt);pointer-events:none;font-size:15px;}
+.sw select{padding-right:32px;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.chip{background:var(--verde-bg);border:1px solid #C8E6C9;border-radius:20px;padding:4px 11px;font-size:11px;color:var(--verde-md);font-weight:700;}
+.prod-card{background:var(--cinza-lt);border:1.5px solid var(--cinza-bd);border-radius:10px;padding:13px;margin-bottom:11px;}
+.prod-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;}
+.prod-num{font-size:11px;font-weight:700;color:var(--verde-md);text-transform:uppercase;letter-spacing:.4px;}
+.btn-rm{background:var(--erro-bg);color:var(--erro);border:none;border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;cursor:pointer;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.prod-card label{font-size:10px;}.prod-card select,.prod-card input{font-size:14px;padding:10px 11px;}
+.btn-add{width:100%;padding:12px;background:var(--verde-bg);border:2px dashed #A5D6A7;border-radius:10px;color:var(--verde-md);font-size:13px;font-weight:700;cursor:pointer;margin-top:2px;}
+.val-alerta{font-size:11px;font-weight:700;padding:4px 8px;border-radius:5px;margin-top:-6px;margin-bottom:8px;display:none;}
+.val-alerta.vencido{background:#FFCDD2;color:var(--vermelho);display:block;}
+.val-alerta.critico{background:#FFE0B2;color:var(--laranja);display:block;}
+.val-alerta.atencao{background:#FFF9C4;color:#F57F17;display:block;}
+.btn{width:100%;padding:15px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .15s,transform .1s;}
+.btn:active{transform:scale(.98);}
+.btn-p{background:var(--verde);color:#fff;}.btn-s{background:transparent;color:var(--verde-md);border:2px solid var(--verde-md);}
+.btn-row{display:flex;gap:9px;margin-top:6px;}.btn-row .btn{flex:1;font-size:13px;padding:12px;}
+.rev-bloco{background:var(--cinza-lt);border-radius:10px;padding:13px 15px;margin-bottom:11px;}
+.rev-bloco h3{font-size:12px;color:var(--verde-md);font-weight:700;margin-bottom:7px;}
+.rev-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--cinza-bd);}
+.rev-row:last-child{border-bottom:none;}
+.rev-row .rl{color:var(--cinza-txt);}.rev-row .rv{font-weight:700;text-align:right;max-width:62%;}
+.bv{color:var(--vermelho);font-weight:700;}.bc{color:var(--laranja);font-weight:700;}.ba{color:#F57F17;font-weight:700;}.bo{color:var(--verde-md);font-weight:700;}
+.envio-box{text-align:center;padding:32px 16px;}
+.envio-box .ic{font-size:52px;margin-bottom:14px;}
+.envio-box h2{font-size:19px;font-weight:700;margin-bottom:7px;}
+.envio-box p{font-size:13px;color:var(--cinza-txt);line-height:1.5;}
+.spinner{width:46px;height:46px;border:4px solid #C8E6C9;border-top-color:var(--verde);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 18px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#333;color:#fff;padding:11px 18px;border-radius:22px;font-size:12px;font-weight:700;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* LOADING INICIAL */
+.loading-inicial{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;}
+.loading-inicial p{font-size:14px;color:var(--cinza-txt);}
+.erro-cfg{background:var(--erro-bg);border:1.5px solid #EF9A9A;border-radius:10px;padding:16px;margin:16px;text-align:center;}
+.erro-cfg h3{color:var(--erro);font-size:14px;margin-bottom:8px;}
+.erro-cfg p{font-size:12px;color:var(--cinza-txt);line-height:1.6;}
+/* ADMIN */
+.admin-wrap{padding:16px;}
+.admin-tabs{display:flex;gap:0;background:var(--cinza-lt);border-radius:10px;padding:3px;margin-bottom:16px;overflow-x:auto;}
+.admin-tab{flex:1;min-width:72px;padding:8px 4px;text-align:center;font-size:10px;font-weight:700;color:var(--cinza-txt);border-radius:8px;cursor:pointer;white-space:nowrap;border:none;background:transparent;}
+.admin-tab.ativo{background:var(--verde);color:#fff;}
+.admin-secao{display:none;}.admin-secao.ativa{display:block;}
+.adm-lista{list-style:none;margin-bottom:12px;}
+.adm-item{display:flex;align-items:center;justify-content:space-between;background:var(--branco);border:1.5px solid var(--cinza-bd);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:13px;}
+.adm-item .nome{flex:1;font-weight:600;}.adm-item .sub{font-size:11px;color:var(--cinza-txt);margin-top:1px;}
+.adm-acoes{display:flex;gap:5px;}
+.btn-adm-ed{background:var(--verde-bg);color:var(--verde-md);border:none;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-adm-rm{background:var(--erro-bg);color:var(--erro);border:none;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;}
+.adm-form{background:var(--cinza-lt);border-radius:10px;padding:14px;margin-bottom:14px;}
+.adm-form h3{font-size:12px;font-weight:700;color:var(--verde-md);text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px;}
+.adm-form input,.adm-form select{font-size:14px;padding:11px 12px;margin-bottom:10px;}
+.adm-form .btn{font-size:13px;padding:12px;}
+.status-sync{font-size:11px;padding:6px 10px;border-radius:6px;margin-bottom:10px;text-align:center;font-weight:600;}
+.status-sync.ok{background:var(--verde-bg);color:var(--verde-md);}
+.status-sync.erro{background:var(--erro-bg);color:var(--erro);}
+.status-sync.carregando{background:#FFF9C4;color:#F57F17;}
+.login-box{max-width:360px;margin:40px auto 0;padding:16px;}
+.login-box .card{text-align:center;}
+.login-box .ic-login{font-size:44px;margin-bottom:12px;}
+.login-box h2{font-size:17px;font-weight:700;margin-bottom:6px;}
+.login-box p{font-size:13px;color:var(--cinza-txt);margin-bottom:18px;}
+.pw-wrap{position:relative;}.pw-wrap input{padding-right:44px;}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--cinza-txt);}
+.info-box{background:#E3F2FD;border:1.5px solid #90CAF9;border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;color:#1565C0;line-height:1.6;}
+.info-box strong{display:block;margin-bottom:4px;font-size:13px;}
+/* ── GERENCIAL ── */
+.ger-totais{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;}
+.ger-kpi{background:var(--branco);border-radius:10px;box-shadow:var(--shadow);padding:14px 10px;text-align:center;}
+.ger-kpi .val{font-size:28px;font-weight:800;color:var(--verde-md);line-height:1;}
+.ger-kpi .lbl{font-size:10px;font-weight:700;color:var(--cinza-txt);text-transform:uppercase;letter-spacing:.4px;margin-top:4px;}
+.ger-titulo{font-size:12px;font-weight:700;color:var(--verde);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ger-titulo::before{content:'';display:block;width:4px;height:14px;background:var(--verde-lt);border-radius:2px;}
+.ger-card{background:var(--branco);border-radius:10px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;}
+.ger-card-hdr{background:var(--verde-md);color:#fff;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;}
+.ger-card-hdr .nome{font-size:13px;font-weight:700;}
+.ger-card-hdr .badges{display:flex;gap:6px;}
+.ger-badge{background:rgba(255,255,255,.2);border-radius:12px;padding:3px 9px;font-size:11px;font-weight:700;}
+.ger-card-body{padding:12px 14px;}
+.ger-stat-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 0;border-bottom:1px solid var(--cinza-bd);}
+.ger-stat-row:last-child{border-bottom:none;}
+.ger-stat-row .lbl{color:var(--cinza-txt);}
+.ger-stat-row .val{font-weight:700;color:var(--texto);}
+/* Promotor expansível */
+.prom-card{background:var(--branco);border:1.5px solid var(--cinza-bd);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.prom-card-hdr{padding:11px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.prom-card-hdr:hover{background:var(--verde-bg);}
+.prom-card-hdr .pnome{font-size:13px;font-weight:700;color:var(--texto);}
+.prom-card-hdr .psub{font-size:11px;color:var(--cinza-txt);margin-top:2px;}
+.prom-card-hdr .ptoggle{font-size:16px;color:var(--cinza-txt);transition:transform .2s;}
+.prom-card-hdr.open .ptoggle{transform:rotate(180deg);}
+.prom-card-body{display:none;padding:0 14px 12px;border-top:1px solid var(--cinza-bd);}
+.prom-card-body.open{display:block;}
+.prom-loja-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--cinza-bd);font-size:12px;}
+.prom-loja-item:last-child{border-bottom:none;}
+.prom-loja-cod{background:var(--verde-bg);color:var(--verde-md);border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;white-space:nowrap;}
+.prom-loja-nome{color:var(--texto);}
+.prom-sem-lojas{font-size:12px;color:var(--cinza-txt);padding:8px 0;font-style:italic;}
+.ger-vazio{font-size:13px;color:var(--cinza-txt);text-align:center;padding:24px 0;}
+.loja-check-grupo{margin-bottom:8px;}
+.loja-check-rede{font-size:10px;font-weight:700;color:var(--cinza-txt);text-transform:uppercase;letter-spacing:.4px;padding:4px 0 4px 2px;border-bottom:1px solid var(--cinza-bd);margin-bottom:4px;}
+.loja-check-item{display:flex;align-items:center;gap:8px;padding:5px 2px;border-radius:6px;cursor:pointer;}
+.loja-check-item:hover{background:var(--verde-bg);}
+.loja-check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--verde-md);cursor:pointer;flex-shrink:0;}
+.loja-check-item span{font-size:12px;color:var(--texto);line-height:1.3;}
+.loja-check-item .cod-erp{font-size:10px;color:var(--cinza-txt);margin-left:2px;}
+</style>
+</head>
+<body>
+
+<!-- TELA: APP PROMOTOR -->
+<div class="tela ativa" id="tela-app">
+<header>
+  <div class="logo-row">
+    <div class="logo-icon">🥛</div>
+    <div><h1>Natural Gurt</h1><p>Registro de Estoque em Loja</p></div>
+  </div>
+  <div class="header-right">
+    <button class="btn-icon" onclick="irAdmin()" title="Admin">🔧</button>
+  </div>
+</header>
+<div class="steps-bar">
+  <div class="step-tab ativo" id="tab1">1·Promotor</div>
+  <div class="step-tab" id="tab2">2·Loja</div>
+  <div class="step-tab" id="tab3">3·Produtos</div>
+  <div class="step-tab" id="tab4">4·Revisar</div>
+</div>
+
+<!-- PASSO 0: CARREGANDO -->
+<div class="passo ativo" id="passo0">
+  <div class="loading-inicial">
+    <div class="spinner"></div>
+    <p>Carregando dados...</p>
+  </div>
+</div>
+
+<!-- PASSO 1 -->
+<div class="passo" id="passo1">
+  <div class="card">
+    <div class="card-titulo">Quem está registrando?</div>
+    <div class="fg">
+      <label>Gerente responsável <span class="req">*</span></label>
+      <div class="sw"><select id="sel-gerente" onchange="carregarPromotores()">
+        <option value="">— Selecione o gerente —</option>
+      </select></div>
+    </div>
+    <div class="fg" style="margin-top:14px">
+      <label>Seu nome (promotor) <span class="req">*</span></label>
+      <div class="sw"><select id="sel-promotor" disabled onchange="onPromorSelected()">
+        <option value="">— Selecione o gerente primeiro —</option>
+      </select></div>
+    </div>
+  </div>
+  <button class="btn btn-p" onclick="irPara(2)">Continuar →</button>
+</div>
+
+<!-- PASSO 2 -->
+<div class="passo" id="passo2">
+  <div class="card">
+    <div class="card-titulo">Qual loja você está visitando?</div>
+    <div class="chips">
+      <div class="chip" id="chip-promotor"></div>
+      <div class="chip" id="chip-gerente"></div>
+    </div>
+    <div class="fg">
+      <label>Rede <span class="req">*</span></label>
+      <div class="sw"><select id="sel-rede" onchange="carregarLojas()" disabled>
+        <option value="">— Selecione a rede —</option>
+      </select></div>
+    </div>
+    <div class="fg" style="margin-top:14px">
+      <label>Loja <span class="req">*</span></label>
+      <div class="sw"><select id="sel-loja" disabled>
+        <option value="">— Selecione a rede primeiro —</option>
+      </select></div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-s" onclick="irPara(1)">← Voltar</button>
+    <button class="btn btn-p" onclick="irPara(3)">Continuar →</button>
+  </div>
+</div>
+
+<!-- PASSO 3 -->
+<div class="passo" id="passo3">
+  <div class="card">
+    <div class="card-titulo">Produtos em estoque</div>
+    <div class="chips"><div class="chip" id="chip-loja"></div></div>
+    <div id="lista-produtos"></div>
+    <button class="btn-add" onclick="adicionarProduto()">+ Adicionar produto</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-s" onclick="irPara(2)">← Voltar</button>
+    <button class="btn btn-p" onclick="irPara(4)">Revisar →</button>
+  </div>
+</div>
+
+<!-- PASSO 4 -->
+<div class="passo" id="passo4">
+  <div class="card">
+    <div class="card-titulo">Confirme os dados</div>
+    <div id="revisao-conteudo"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-s" onclick="irPara(3)">← Voltar</button>
+    <button class="btn btn-p" onclick="enviar()" id="btn-enviar">✅ Enviar registro</button>
+  </div>
+</div>
+
+<!-- PASSO 5 -->
+<div class="passo" id="passo5">
+  <div class="card">
+    <div class="envio-box" id="envio-box">
+      <div class="spinner"></div>
+      <h2>Enviando...</h2>
+      <p>Aguarde, salvando seus dados.</p>
+    </div>
+  </div>
+</div>
+</div><!-- /tela-app -->
+
+<!-- TELA: LOGIN ADMIN -->
+<div class="tela" id="tela-login">
+<header>
+  <div class="logo-row">
+    <div class="logo-icon">🔧</div>
+    <div><h1>Administração</h1><p>Natural Gurt · Estoque</p></div>
+  </div>
+  <div class="header-right">
+    <button class="btn-icon" onclick="mostrarTela('tela-app')">✕</button>
+  </div>
+</header>
+<div class="login-box">
+  <div class="card">
+    <div class="ic-login">🔒</div>
+    <h2>Acesso restrito</h2>
+    <p>Digite a senha de administrador para continuar.</p>
+    <div class="fg">
+      <label>Senha</label>
+      <div class="pw-wrap">
+        <input type="password" id="input-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginAdmin()">
+        <button class="pw-toggle" onclick="toggleSenha()">👁️</button>
+      </div>
+    </div>
+    <button class="btn btn-p" onclick="loginAdmin()">Entrar</button>
+  </div>
+</div>
+</div>
+
+<!-- TELA: PAINEL ADMIN -->
+<div class="tela" id="tela-admin">
+<header>
+  <div class="logo-row">
+    <div class="logo-icon">🔧</div>
+    <div><h1>Painel Admin</h1><p id="adm-status-hdr">Natural Gurt</p></div>
+  </div>
+  <div class="header-right">
+    <button class="btn-icon" onclick="sairAdmin()" title="Sair">✕</button>
+  </div>
+</header>
+<div class="admin-wrap">
+
+  <div id="adm-status-bar" class="status-sync carregando">⏳ Conectando ao Google Sheets...</div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab ativo" onclick="abrirSecao('config')">⚙️ Config</button>
+    <button class="admin-tab" onclick="abrirSecao('gerentes')">👔 Gerentes</button>
+    <button class="admin-tab" onclick="abrirSecao('promotores')">👤 Promotores</button>
+    <button class="admin-tab" onclick="abrirSecao('redes')">🏪 Lojas</button>
+    <button class="admin-tab" onclick="abrirSecao('skus')">📦 Produtos</button>
+    <button class="admin-tab" onclick="abrirSecao('gerencial');renderGerencial()">📊 Gerencial</button>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="admin-secao ativa" id="sec-config">
+    <div class="info-box">
+      <strong>📋 Como configurar pela primeira vez</strong>
+      1. Crie uma planilha no Google Sheets<br>
+      2. Crie um Apps Script (script.google.com) e cole o código do arquivo .gs<br>
+      3. Implante como App da Web e copie a URL<br>
+      4. Cole a URL abaixo e clique em Conectar<br>
+      5. Cadastre gerentes, promotores, lojas e produtos nas abas acima
+    </div>
+    <div class="card">
+      <div class="card-titulo">URL do Apps Script</div>
+      <div class="fg">
+        <label>URL de envio e configuração</label>
+        <input type="text" id="adm-script-url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <button class="btn btn-p" onclick="conectarSheets()">🔗 Conectar ao Google Sheets</button>
+    </div>
+    <div class="card">
+      <div class="card-titulo">Senha de administrador</div>
+      <div class="fg"><label>Senha atual</label><input type="password" id="adm-senha-atual" placeholder="Senha atual"></div>
+      <div class="fg"><label>Nova senha</label><input type="password" id="adm-senha-nova" placeholder="Nova senha (mín. 4 caracteres)"></div>
+      <div class="fg"><label>Confirmar</label><input type="password" id="adm-senha-conf" placeholder="Repita a nova senha"></div>
+      <button class="btn btn-p" onclick="alterarSenha()">Alterar senha</button>
+    </div>
+  </div>
+
+  <!-- GERENTES -->
+  <div class="admin-secao" id="sec-gerentes">
+    <div class="adm-form">
+      <h3 id="form-ger-titulo">Novo gerente</h3>
+      <input type="text" id="inp-ger-nome" placeholder="Nome completo do gerente">
+      <input type="hidden" id="inp-ger-idx" value="-1">
+      <div class="btn-row">
+        <button class="btn btn-p" onclick="salvarGerente()">Salvar</button>
+        <button class="btn btn-s" onclick="cancelarGer()">Cancelar</button>
+      </div>
+    </div>
+    <ul class="adm-lista" id="lista-ger"></ul>
+  </div>
+
+  <!-- PROMOTORES -->
+  <div class="admin-secao" id="sec-promotores">
+    <div class="adm-form">
+      <h3 id="form-prom-titulo">Novo promotor</h3>
+      <div class="sw" style="margin-bottom:10px">
+        <select id="inp-prom-ger" onchange="atualizarCheckboxLojas()"><option value="">— Selecione o gerente —</option></select>
+      </div>
+      <input type="text" id="inp-prom-nome" placeholder="Nome completo do promotor" style="margin-bottom:10px">
+      <label style="margin-bottom:8px">Lojas que este promotor visita <span class="req">*</span></label>
+      <div id="prom-lojas-busca-wrap" style="display:none;margin-bottom:6px;position:relative;">
+        <input type="text" id="inp-lojas-busca"
+          placeholder="🔍 Buscar por código ERP ou nome da loja..."
+          oninput="filtrarCheckboxLojas(this.value)"
+          style="padding-left:14px;font-size:13px;margin-bottom:0;">
+        <span id="lojas-busca-count" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--cinza-txt);pointer-events:none;"></span>
+      </div>
+      <div style="display:none;justify-content:space-between;align-items:center;margin-bottom:6px;" id="prom-lojas-acoes">
+        <span id="lojas-selecionadas-count" style="font-size:11px;font-weight:700;color:var(--verde-md);"></span>
+        <div style="display:flex;gap:6px;">
+          <button onclick="marcarTodasVisiveis(true)"  style="background:var(--verde-bg);color:var(--verde-md);border:1px solid #C8E6C9;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;">✅ Marcar visíveis</button>
+          <button onclick="marcarTodasVisiveis(false)" style="background:var(--erro-bg);color:var(--erro);border:1px solid #FFCDD2;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;">✕ Desmarcar visíveis</button>
+        </div>
+      </div>
+      <div id="prom-lojas-wrap" style="background:var(--branco);border:1.5px solid var(--cinza-bd);border-radius:8px;padding:10px;max-height:220px;overflow-y:auto;margin-bottom:10px">
+        <span style="color:var(--cinza-txt);font-size:12px">Selecione o gerente primeiro</span>
+      </div>
+      <input type="hidden" id="inp-prom-idx" value="-1">
+      <input type="hidden" id="inp-prom-ger-orig" value="">
+      <div class="btn-row">
+        <button class="btn btn-p" onclick="salvarPromotor()">Salvar</button>
+        <button class="btn btn-s" onclick="cancelarProm()">Cancelar</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Filtrar por gerente</label>
+      <div class="sw"><select id="filtro-prom" onchange="renderPromotores()">
+        <option value="">Todos</option>
+      </select></div>
+    </div>
+    <ul class="adm-lista" id="lista-prom"></ul>
+  </div>
+
+  <!-- REDES/LOJAS -->
+  <div class="admin-secao" id="sec-redes">
+    <div class="adm-form">
+      <h3 id="form-loja-titulo">Nova loja</h3>
+      <label style="margin-bottom:6px">Rede <span class="req">*</span></label>
+      <div class="sw" style="margin-bottom:10px">
+        <select id="inp-rede-sel" onchange="onRedeSelChange()">
+          <option value="">— Selecione ou cadastre nova —</option>
+        </select>
+      </div>
+      <div id="inp-rede-nova-wrap" style="display:none;margin-bottom:10px">
+        <input type="text" id="inp-rede-nova" placeholder="Nome da nova rede (ex: Mix Mateus)" style="margin-bottom:0">
+      </div>
+      <input type="hidden" id="inp-rede-nome">
+      <input type="text" id="inp-loja-cod" placeholder="Código ERP da loja (ex: 00142)">
+      <input type="text" id="inp-loja-nome" placeholder="Loja (ex: Atacadão — Alagoinhas)">
+      <input type="hidden" id="inp-loja-idx" value="-1">
+      <input type="hidden" id="inp-rede-orig" value="">
+      <div class="btn-row">
+        <button class="btn btn-p" onclick="salvarLoja()">Salvar</button>
+        <button class="btn btn-s" onclick="cancelarLoja()">Cancelar</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Filtrar por rede</label>
+      <div class="sw"><select id="filtro-rede" onchange="renderLojas()">
+        <option value="">Todas</option>
+      </select></div>
+    </div>
+    <div class="fg" style="position:relative;margin-top:-6px">
+      <input type="text" id="filtro-loja-busca"
+        placeholder="🔍 Buscar por código ERP ou nome..."
+        oninput="renderLojas()"
+        style="font-size:13px;padding-right:72px;">
+      <span id="filtro-loja-count" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--cinza-txt);pointer-events:none;"></span>
+    </div>
+    <ul class="adm-lista" id="lista-lojas"></ul>
+  </div>
+
+  <!-- SKUs -->
+  <div class="admin-secao" id="sec-skus">
+    <div class="adm-form">
+      <h3 id="form-sku-titulo">Novo produto</h3>
+      <input type="text" id="inp-sku-cod" placeholder="Código SKU (ex: YOG001)">
+      <input type="text" id="inp-sku-nome" placeholder="Descrição (ex: Iogurte Natural 170g CX12)">
+      <input type="hidden" id="inp-sku-idx" value="-1">
+      <div class="btn-row">
+        <button class="btn btn-p" onclick="salvarSku()">Salvar</button>
+        <button class="btn btn-s" onclick="cancelarSku()">Cancelar</button>
+      </div>
+    </div>
+    <ul class="adm-lista" id="lista-skus"></ul>
+  </div>
+
+  <!-- GERENCIAL -->
+  <div class="admin-secao" id="sec-gerencial">
+
+    <!-- Totalizadores -->
+    <div class="ger-totais" id="ger-totais"></div>
+
+    <!-- Por gerente: promotores e lojas -->
+    <div class="ger-titulo">👔 Resumo por Gerente</div>
+    <div id="ger-por-gerente"></div>
+
+    <!-- Lojas por promotor (expansível) -->
+    <div class="ger-titulo" style="margin-top:18px">👤 Lojas por Promotor</div>
+    <div class="fg" style="margin-bottom:10px;position:relative;">
+      <input type="text" id="ger-busca-prom"
+        placeholder="🔍 Filtrar por promotor ou gerente..."
+        oninput="filtrarGerencialProm(this.value)"
+        style="font-size:13px;">
+    </div>
+    <div id="ger-por-promotor"></div>
+
+  </div>
+
+</div>
+</div><!-- /tela-admin -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// CONFIG LOCAL (só URL e senha — tudo mais vem do Sheets)
+// ═══════════════════════════════════════════════════════════════════════
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+const SENHA_DEFAULT = 'admin123';
+const getSenha = () => LS.get('ng_senha') || SENHA_DEFAULT;
+const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbx9PObgp0cswfB98tWyoTALNXRkvx0nIDjEDzuWs7m45tmNv8ZtXY6J5XemkA2jsYzF/exec';
+const getUrl   = () => LS.get('ng_url') || URL_SCRIPT;
+
+// ═══════════════════════════════════════════════════════════════════════
+// DADOS (carregados do Sheets)
+// ═══════════════════════════════════════════════════════════════════════
+let DADOS = { gerentes:[], promotores:{}, redes:[], lojas:{}, skus:[] };
+
+// ═══════════════════════════════════════════════════════════════════════
+// INICIALIZAÇÃO
+// ═══════════════════════════════════════════════════════════════════════
+async function init() {
+  const url = getUrl();
+
+  // Detecta se está rodando localmente (file://)
+  if (location.protocol === 'file:') {
+    document.getElementById('passo0').innerHTML = `
+      <div class="erro-cfg">
+        <h3>⚠️ Arquivo aberto localmente</h3>
+        <p>O app está sendo aberto direto do computador (<strong>file://</strong>), o que impede a conexão com o Google Sheets.<br><br>
+        <strong>Solução:</strong> o arquivo precisa estar hospedado em um servidor web.<br><br>
+        👉 Suba o arquivo no <strong>GitHub Pages</strong> (gratuito) e acesse pelo link gerado.<br><br>
+        Enquanto isso, você pode acessar o <strong>painel admin</strong> tocando em 🔧 para configurar os cadastros — mas os promotores só conseguirão usar pelo link publicado.</p>
+        <button class="btn btn-p" style="margin-top:14px" onclick="irAdmin()">🔧 Ir para o Admin</button>
+      </div>`;
+    mostrarPasso(0);
+    return;
+  }
+
+  if (!url) {
+    document.getElementById('passo0').innerHTML = `
+      <div class="erro-cfg">
+        <h3>⚙️ App não configurado</h3>
+        <p>Nenhuma URL do Google Apps Script foi configurada ainda.<br><br>
+        Se você é o <strong>administrador</strong>, toque em 🔧 para configurar.<br><br>
+        Se você é <strong>promotor</strong>, aguarde o link correto do seu gerente.</p>
+        <button class="btn btn-p" style="margin-top:14px" onclick="irAdmin()">🔧 Configurar agora</button>
+      </div>`;
+    mostrarPasso(0);
+    return;
+  }
+
+  try {
+    // Timeout de 12 segundos
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const r = await fetch(url, { method:'POST', body: JSON.stringify({acao:'getConfig'}), headers:{'Content-Type':'text/plain'}, signal: controller.signal });
+    clearTimeout(timer);
+    const d = await r.json();
+    if (d.status === 'ok') {
+      DADOS = d.dados;
+      preencherAppSelects();
+      mostrarPasso(1);
+      adicionarProduto();
+    } else throw new Error(d.msg || 'Resposta inválida do servidor');
+  } catch(e) {
+    const isTimeout  = e.name === 'AbortError';
+    const isCors     = e.message.includes('Failed to fetch') || e.message.includes('NetworkError');
+    let titulo = '❌ Falha ao carregar dados';
+    let detalhe = e.message;
+    if (isTimeout)  { titulo='⏱️ Tempo esgotado'; detalhe='O servidor demorou demais para responder. Verifique se o Apps Script está implantado corretamente.'; }
+    if (isCors)     { titulo='🔒 Erro de conexão'; detalhe='Não foi possível alcançar o servidor. Verifique se a URL do Apps Script está correta e se "Quem tem acesso" está como <strong>Qualquer pessoa</strong>.'; }
+    document.getElementById('passo0').innerHTML = `
+      <div class="erro-cfg">
+        <h3>${titulo}</h3>
+        <p>${detalhe}<br><br>
+        <button class="btn btn-p" style="margin-top:12px;margin-bottom:8px" onclick="location.reload()">🔄 Tentar novamente</button><br>
+        <button class="btn btn-s" style="margin-top:4px" onclick="irAdmin()">🔧 Verificar configuração</button></p>
+      </div>`;
+    mostrarPasso(0);
+  }
+}
+
+function preencherAppSelects() {
+  const sg = document.getElementById('sel-gerente');
+  sg.innerHTML = '<option value="">— Selecione o gerente —</option>';
+  DADOS.gerentes.forEach(g => sg.appendChild(opt(g,g)));
+  const sr = document.getElementById('sel-rede');
+  sr.innerHTML = '<option value="">— Selecione a rede —</option>';
+  DADOS.redes.forEach(r => sr.appendChild(opt(r,r)));
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════
+function opt(val, txt) { const o=document.createElement('option'); o.value=val; o.textContent=txt; return o; }
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+function mostrarTela(id) {
+  document.querySelectorAll('.tela').forEach(t=>t.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// APP — LISTAS CONDICIONAIS
+// ═══════════════════════════════════════════════════════════════════════
+function carregarPromotores() {
+  const g=document.getElementById('sel-gerente').value;
+  const sp=document.getElementById('sel-promotor');
+  sp.innerHTML='<option value="">— Selecione —</option>';
+  sp.disabled=!g;
+  // Resetar rede e loja ao trocar gerente
+  document.getElementById('sel-rede').innerHTML='<option value="">— Selecione a rede —</option>';
+  document.getElementById('sel-rede').disabled=true;
+  document.getElementById('sel-loja').innerHTML='<option value="">— Selecione a loja —</option>';
+  document.getElementById('sel-loja').disabled=true;
+  if(!g) return;
+  (DADOS.promotores[g]||[]).forEach((p,i)=>{
+    const pNome=(typeof p==='object')?p.nome:p;
+    sp.appendChild(opt(String(i), pNome)); // value = índice para achar o objeto depois
+  });
+}
+
+function onPromorSelected() {
+  const g=document.getElementById('sel-gerente').value;
+  const idx=document.getElementById('sel-promotor').value;
+  const sr=document.getElementById('sel-rede');
+  const sl=document.getElementById('sel-loja');
+  sr.innerHTML='<option value="">— Selecione a rede —</option>';
+  sr.disabled=true;
+  sl.innerHTML='<option value="">— Selecione a loja —</option>';
+  sl.disabled=true;
+  if(idx===''||!g) return;
+  const p=DADOS.promotores[g][parseInt(idx)];
+  const pLojas=(typeof p==='object'&&p.lojas)?p.lojas:[]; // array de cod_erp
+  if(!pLojas.length){
+    toast('Este promotor não tem lojas vinculadas. Configure no painel admin.');
+    return;
+  }
+  // Monta lista de lojas do promotor agrupadas por rede
+  const redesDisponiveis=new Set();
+  DADOS.redes.forEach(r=>{
+    (DADOS.lojas[r]||[]).forEach(l=>{
+      const lCod=(typeof l==='object')?l.cod:'';
+      if(pLojas.includes(lCod)) redesDisponiveis.add(r);
+    });
+  });
+  redesDisponiveis.forEach(r=>sr.appendChild(opt(r,r)));
+  sr.disabled=false;
+}
+
+function carregarLojas() {
+  const g=document.getElementById('sel-gerente').value;
+  const idx=document.getElementById('sel-promotor').value;
+  const r=document.getElementById('sel-rede').value;
+  const sl=document.getElementById('sel-loja');
+  sl.innerHTML='<option value="">— Selecione a loja —</option>';
+  sl.disabled=!r;
+  if(!r||idx===''||!g) return;
+  const p=DADOS.promotores[g][parseInt(idx)];
+  const pLojas=(typeof p==='object'&&p.lojas)?p.lojas:[];
+  (DADOS.lojas[r]||[]).forEach(l=>{
+    const lNome=(typeof l==='object')?l.nome:l;
+    const lCod =(typeof l==='object')?l.cod:'';
+    if(!pLojas.includes(lCod)) return; // filtra só as lojas do promotor
+    const o=document.createElement('option');
+    o.value=lCod;
+    o.textContent=lNome;
+    o.dataset.nome=lNome;
+    sl.appendChild(o);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// APP — PRODUTOS
+// ═══════════════════════════════════════════════════════════════════════
+let prodCnt=0;
+function adicionarProduto() {
+  prodCnt++;
+  const id=`pr${prodCnt}`;
+  const div=document.createElement('div');
+  div.className='prod-card'; div.id=id;
+  const opts='<option value="">— Selecione —</option>'+DADOS.skus.map(s=>`<option value="${s.cod}">${s.cod} — ${s.nome}</option>`).join('');
+  div.innerHTML=`
+    <div class="prod-hdr">
+      <span class="prod-num">Produto ${prodCnt}</span>
+      ${prodCnt>1?`<button class="btn-rm" onclick="remProd('${id}')">✕ Remover</button>`:''}
+    </div>
+    <div class="fg">
+      <label>SKU / Produto <span class="req">*</span></label>
+      <div class="sw"><select id="${id}-sku">${opts}</select></div>
+    </div>
+    <div class="g2" style="margin-top:10px">
+      <div class="fg"><label>Qtd (caixas) <span class="req">*</span></label>
+        <input type="number" id="${id}-qtd" placeholder="0" min="0"></div>
+      <div class="fg"><label>Validade <span class="req">*</span></label>
+        <input type="date" id="${id}-val" onchange="alertaVal('${id}')"></div>
+    </div>
+    <div class="val-alerta" id="${id}-alerta"></div>`;
+  document.getElementById('lista-produtos').appendChild(div);
+}
+function remProd(id) { document.getElementById(id).remove(); }
+function alertaVal(id) {
+  const v=document.getElementById(`${id}-val`).value;
+  const a=document.getElementById(`${id}-alerta`);
+  if(!v){a.className='val-alerta';return;}
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const dias=Math.round((new Date(v+'T00:00:00')-hoje)/86400000);
+  if(dias<=0){a.className='val-alerta vencido';a.textContent='🔴 Produto VENCIDO — registre assim mesmo';}
+  else if(dias<=3){a.className='val-alerta critico';a.textContent=`🟠 Vence em ${dias} dia(s) — atenção crítica`;}
+  else if(dias<=7){a.className='val-alerta atencao';a.textContent=`🟡 Vence em ${dias} dia(s) — acompanhe o giro`;}
+  else{a.className='val-alerta';a.textContent='';}
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// APP — NAVEGAÇÃO
+// ═══════════════════════════════════════════════════════════════════════
+let st={};
+function irPara(n) {
+  const atual=passoAtual();
+  if(n>atual && !validar(atual)) return;
+  coletarSt();
+  mostrarPasso(n);
+  if(n===4) montarRevisao();
+}
+function passoAtual() {
+  for(let i=0;i<=5;i++) if(document.getElementById(`passo${i}`).classList.contains('ativo')) return i;
+  return 1;
+}
+function mostrarPasso(n) {
+  for(let i=0;i<=5;i++){
+    document.getElementById(`passo${i}`).classList.toggle('ativo',i===n);
+    const t=document.getElementById(`tab${i}`);
+    if(t){t.classList.toggle('ativo',i===n);t.classList.toggle('feito',i<n);}
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function validar(n) {
+  if(n===1){
+    if(!document.getElementById('sel-gerente').value) return toast('Selecione o gerente'),false;
+    if(!document.getElementById('sel-promotor').value) return toast('Selecione seu nome'),false;
+  }
+  if(n===2){
+    if(!document.getElementById('sel-rede').value) return toast('Selecione a rede'),false;
+    if(!document.getElementById('sel-loja').value) return toast('Selecione a loja'),false;
+  }
+  if(n===3){
+    const cs=document.querySelectorAll('.prod-card');
+    if(!cs.length) return toast('Adicione pelo menos um produto'),false;
+    for(const c of cs){
+      const id=c.id;
+      if(!document.getElementById(`${id}-sku`).value) return toast('Selecione o SKU de todos os produtos'),false;
+      if(document.getElementById(`${id}-qtd`).value==='') return toast('Informe a quantidade de todos os produtos'),false;
+      if(!document.getElementById(`${id}-val`).value) return toast('Informe a validade de todos os produtos'),false;
+    }
+  }
+  return true;
+}
+function coletarSt() {
+  st.gerente=document.getElementById('sel-gerente').value;
+  const spIdx=document.getElementById('sel-promotor').value;
+  const pObj=DADOS.promotores[st.gerente]?.[parseInt(spIdx)];
+  st.promotor=(typeof pObj==='object')?pObj.nome:(pObj||'');
+  st.rede=document.getElementById('sel-rede').value;
+  const slLoja=document.getElementById('sel-loja');
+  st.lojaCod =slLoja.value;
+  st.lojaNome=slLoja.options[slLoja.selectedIndex]?.dataset?.nome || slLoja.options[slLoja.selectedIndex]?.textContent || '';
+  const cp=document.getElementById('chip-promotor');
+  const cg=document.getElementById('chip-gerente');
+  const cl=document.getElementById('chip-loja');
+  if(cp&&st.promotor) cp.textContent='👤 '+st.promotor;
+  if(cg&&st.gerente)  cg.textContent='👔 '+st.gerente;
+  if(cl&&st.lojaNome) cl.textContent='🏪 '+st.lojaNome;
+  st.produtos=[];
+  document.querySelectorAll('.prod-card').forEach(c=>{
+    const id=c.id, sku=document.getElementById(`${id}-sku`).value;
+    const obj=DADOS.skus.find(s=>s.cod===sku)||{};
+    st.produtos.push({sku,nome:obj.nome||'',qtd:document.getElementById(`${id}-qtd`).value,val:document.getElementById(`${id}-val`).value});
+  });
+}
+function montarRevisao() {
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  let h=`<div class="rev-bloco"><h3>📋 Identificação</h3>
+    <div class="rev-row"><span class="rl">Promotor</span><span class="rv">${st.promotor}</span></div>
+    <div class="rev-row"><span class="rl">Gerente</span><span class="rv">${st.gerente}</span></div>
+    <div class="rev-row"><span class="rl">Rede</span><span class="rv">${st.rede}</span></div>
+    <div class="rev-row"><span class="rl">Loja</span><span class="rv">${st.lojaNome}</span></div>
+    <div class="rev-row"><span class="rl">Cód ERP</span><span class="rv">${st.lojaCod}</span></div></div>`;
+  st.produtos.forEach((p,i)=>{
+    const dias=Math.round((new Date(p.val+'T00:00:00')-hoje)/86400000);
+    const badge=dias<=0?'<span class="bv">🔴 VENCIDO</span>':dias<=3?`<span class="bc">🟠 ${dias}d</span>`:dias<=7?`<span class="ba">🟡 ${dias}d</span>`:`<span class="bo">✅ ${dias}d</span>`;
+    const[y,m,dd]=p.val.split('-');
+    h+=`<div class="rev-bloco"><h3>📦 Produto ${i+1}</h3>
+      <div class="rev-row"><span class="rl">SKU</span><span class="rv">${p.sku}</span></div>
+      <div class="rev-row"><span class="rl">Produto</span><span class="rv">${p.nome}</span></div>
+      <div class="rev-row"><span class="rl">Qtd (cx)</span><span class="rv">${p.qtd}</span></div>
+      <div class="rev-row"><span class="rl">Validade</span><span class="rv">${dd}/${m}/${y} ${badge}</span></div></div>`;
+  });
+  document.getElementById('revisao-conteudo').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// APP — ENVIO DE REGISTRO
+// ═══════════════════════════════════════════════════════════════════════
+async function enviar() {
+  const url=getUrl();
+  if(!url) return toast('App não configurado. Contate o administrador.');
+  document.getElementById('btn-enviar').disabled=true;
+  mostrarPasso(5);
+  const agora=new Date();
+  const linhas=st.produtos.map(p=>({
+    data:agora.toLocaleDateString('pt-BR'),
+    hora:agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+    gerente:st.gerente,promotor:st.promotor,rede:st.rede,
+    cod_loja:st.lojaCod,loja:st.lojaNome,
+    sku:p.sku,produto:p.nome,qtd:p.qtd,
+    validade:p.val?p.val.split('-').reverse().join('/'):''}));
+  try {
+    const r=await fetch(url,{method:'POST',body:JSON.stringify({acao:'registrar',linhas}),headers:{'Content-Type':'text/plain'}});
+    const t=await r.text();
+    if(t.includes('ok')||r.ok) sucesso();
+    else throw new Error(t);
+  } catch(e) {
+    document.getElementById('envio-box').innerHTML=`
+      <div class="ic">❌</div><h2>Erro no envio</h2>
+      <p>Verifique sua conexão e tente novamente.<br><small>${e.message}</small></p>
+      <button class="btn btn-p" style="margin-top:18px" onclick="mostrarPasso(4);document.getElementById('btn-enviar').disabled=false">← Tentar novamente</button>`;
+  }
+}
+function sucesso() {
+  document.getElementById('envio-box').innerHTML=`
+    <div class="ic">✅</div><h2>Enviado com sucesso!</h2>
+    <p>Dados salvos no Google Sheets.<br>Obrigado, ${st.promotor}!</p>
+    <button class="btn btn-p" style="margin-top:22px" onclick="novoReg()">+ Registrar outra loja</button>`;
+}
+function novoReg() {
+  st={}; prodCnt=0;
+  document.getElementById('sel-gerente').value='';
+  document.getElementById('sel-promotor').innerHTML='<option value="">— Selecione o gerente primeiro —</option>';
+  document.getElementById('sel-promotor').disabled=true;
+  document.getElementById('sel-rede').innerHTML='<option value="">— Selecione a rede —</option>';
+  document.getElementById('sel-rede').disabled=true;
+  document.getElementById('sel-loja').innerHTML='<option value="">— Selecione a loja —</option>';
+  document.getElementById('sel-loja').disabled=true;
+  document.getElementById('lista-produtos').innerHTML='';
+  adicionarProduto();
+  mostrarPasso(1);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — LOGIN / NAVEGAÇÃO
+// ═══════════════════════════════════════════════════════════════════════
+function irAdmin() { document.getElementById('input-senha').value=''; mostrarTela('tela-login'); }
+function loginAdmin() {
+  if(document.getElementById('input-senha').value===getSenha()){
+    mostrarTela('tela-admin');
+    initAdmin();
+  } else {
+    toast('Senha incorreta');
+    document.getElementById('input-senha').value='';
+  }
+}
+function toggleSenha() {
+  const i=document.getElementById('input-senha');
+  i.type=i.type==='password'?'text':'password';
+}
+function sairAdmin() { mostrarTela('tela-app'); }
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — INIT E CONEXÃO
+// ═══════════════════════════════════════════════════════════════════════
+async function initAdmin() {
+  const url=getUrl();
+  document.getElementById('adm-script-url').value=url;
+  setStatusBar('carregando','⏳ Conectando ao Google Sheets...');
+  if(!url){ setStatusBar('erro','❌ URL não configurada — configure abaixo'); return; }
+  await carregarConfigAdmin();
+}
+
+async function conectarSheets() {
+  const url=document.getElementById('adm-script-url').value.trim();
+  if(!url) return toast('Cole a URL do Apps Script primeiro');
+  LS.set('ng_url',url);
+  setStatusBar('carregando','⏳ Testando conexão...');
+  await carregarConfigAdmin();
+}
+
+async function carregarConfigAdmin() {
+  const url=getUrl();
+  if(!url) return;
+  try {
+    const r=await fetch(url,{method:'POST',body:JSON.stringify({acao:'getConfig'}),headers:{'Content-Type':'text/plain'}});
+    const d=await r.json();
+    if(d.status==='ok'){
+      DADOS=d.dados;
+      setStatusBar('ok','✅ Conectado ao Google Sheets');
+      document.getElementById('adm-status-hdr').textContent='Conectado ao Sheets';
+      renderAdminListas();
+    } else throw new Error(d.msg);
+  } catch(e) {
+    setStatusBar('erro',`❌ Falha na conexão: ${e.message}`);
+  }
+}
+
+function setStatusBar(tipo, msg) {
+  const el=document.getElementById('adm-status-bar');
+  el.className=`status-sync ${tipo}`;
+  el.textContent=msg;
+}
+
+function renderAdminListas() {
+  ['inp-prom-ger','filtro-prom'].forEach(id=>{
+    const el=document.getElementById(id);
+    const val=el.value;
+    el.innerHTML='<option value="">'+( id==='filtro-prom'?'Todos':'— Selecione —')+'</option>';
+    DADOS.gerentes.forEach(g=>el.appendChild(opt(g,g)));
+    el.value=val;
+  });
+  // Select de rede no filtro da lista
+  const fr=document.getElementById('filtro-rede');
+  const frVal=fr.value;
+  fr.innerHTML='<option value="">Todas</option>';
+  DADOS.redes.forEach(r=>fr.appendChild(opt(r,r)));
+  fr.value=frVal;
+  // Select de rede no formulário de loja
+  recarregarSelectRede(document.getElementById('inp-rede-sel')?.value||'');
+  renderGerentes(); renderPromotores(); renderLojas(); renderSkus();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — CHAMADA GENÉRICA AO SHEETS
+// ═══════════════════════════════════════════════════════════════════════
+async function chamarSheets(payload) {
+  const url=getUrl();
+  if(!url) { toast('URL não configurada'); return false; }
+  setStatusBar('carregando','⏳ Salvando...');
+  try {
+    const r=await fetch(url,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}});
+    const d=await r.json();
+    if(d.status==='ok'){
+      DADOS=d.dados; // Sheets devolve os dados atualizados
+      setStatusBar('ok','✅ Salvo com sucesso');
+      renderAdminListas();
+      return true;
+    } else throw new Error(d.msg);
+  } catch(e) {
+    setStatusBar('erro',`❌ Erro: ${e.message}`);
+    toast('Erro ao salvar: '+e.message);
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — GERENTES
+// ═══════════════════════════════════════════════════════════════════════
+function renderGerentes() {
+  const ul=document.getElementById('lista-ger'); ul.innerHTML='';
+  if(!DADOS.gerentes.length){ ul.innerHTML='<li style="color:var(--cinza-txt);font-size:13px;padding:10px 0">Nenhum gerente cadastrado.</li>'; return; }
+  DADOS.gerentes.forEach((g,i)=>{
+    const qtd=(DADOS.promotores[g]||[]).length;
+    const li=document.createElement('li'); li.className='adm-item';
+    li.innerHTML=`<div><div class="nome">${g}</div><div class="sub">${qtd} promotor(es)</div></div>
+      <div class="adm-acoes">
+        <button class="btn-adm-ed" onclick="editarGerente(${i})">✏️</button>
+        <button class="btn-adm-rm" onclick="removerGerente(${i})">🗑️</button>
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+async function salvarGerente() {
+  const nome=document.getElementById('inp-ger-nome').value.trim();
+  const idx=parseInt(document.getElementById('inp-ger-idx').value);
+  if(!nome) return toast('Digite o nome do gerente');
+  const ok=await chamarSheets({acao:'salvarGerente',nome,idx});
+  if(ok) cancelarGer();
+}
+function editarGerente(i) {
+  document.getElementById('inp-ger-nome').value=DADOS.gerentes[i];
+  document.getElementById('inp-ger-idx').value=i;
+  document.getElementById('form-ger-titulo').textContent='Editar gerente';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function removerGerente(i) {
+  if(!confirm(`Remover "${DADOS.gerentes[i]}" e todos os seus promotores?`)) return;
+  await chamarSheets({acao:'removerGerente',idx:i});
+}
+function cancelarGer() {
+  document.getElementById('inp-ger-nome').value='';
+  document.getElementById('inp-ger-idx').value='-1';
+  document.getElementById('form-ger-titulo').textContent='Novo gerente';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — PROMOTORES
+// ═══════════════════════════════════════════════════════════════════════
+function renderPromotores() {
+  const filtro=document.getElementById('filtro-prom').value;
+  const ul=document.getElementById('lista-prom'); ul.innerHTML='';
+  let total=0;
+  DADOS.gerentes.forEach(g=>{
+    if(filtro&&g!==filtro) return;
+    (DADOS.promotores[g]||[]).forEach((p,i)=>{
+      total++;
+      const pNome=(typeof p==='object')?p.nome:p;
+      const pLojas=(typeof p==='object'&&p.lojas)?p.lojas:[];
+      const li=document.createElement('li'); li.className='adm-item';
+      li.innerHTML=`<div><div class="nome">${pNome}</div>
+        <div class="sub">Gerente: ${g} · ${pLojas.length} loja(s) vinculada(s)</div></div>
+        <div class="adm-acoes">
+          <button class="btn-adm-ed" onclick="editarPromotor('${g}',${i})">✏️</button>
+          <button class="btn-adm-rm" onclick="removerPromotor('${g}',${i})">🗑️</button>
+        </div>`;
+      ul.appendChild(li);
+    });
+  });
+  if(!total) ul.innerHTML='<li style="color:var(--cinza-txt);font-size:13px;padding:10px 0">Nenhum promotor cadastrado.</li>';
+}
+
+function atualizarCheckboxLojas(lojasSelecionadas=[]) {
+  const wrap=document.getElementById('prom-lojas-wrap');
+  const buscaWrap=document.getElementById('prom-lojas-busca-wrap');
+  const acoesWrap=document.getElementById('prom-lojas-acoes');
+  wrap.innerHTML='';
+
+  // Achata todas as lojas de todas as redes
+  const todasLojas=[];
+  DADOS.redes.forEach(r=>{
+    (DADOS.lojas[r]||[]).forEach(l=>{
+      const lNome=(typeof l==='object')?l.nome:l;
+      const lCod =(typeof l==='object')?l.cod:'';
+      todasLojas.push({rede:r,nome:lNome,cod:lCod});
+    });
+  });
+
+  if(!todasLojas.length){
+    wrap.innerHTML='<span style="color:var(--cinza-txt);font-size:12px">Nenhuma loja cadastrada ainda. Cadastre lojas primeiro.</span>';
+    buscaWrap.style.display='none';
+    acoesWrap.style.display='none';
+    return;
+  }
+
+  // Mostra barra de busca e ações
+  buscaWrap.style.display='block';
+  acoesWrap.style.display='flex';
+  document.getElementById('inp-lojas-busca').value='';
+
+  // Agrupa por rede e renderiza
+  const porRede={};
+  todasLojas.forEach(l=>{ if(!porRede[l.rede]) porRede[l.rede]=[]; porRede[l.rede].push(l); });
+  Object.keys(porRede).forEach(rede=>{
+    const grupo=document.createElement('div');
+    grupo.className='loja-check-grupo';
+    grupo.dataset.rede=rede;
+    grupo.innerHTML=`<div class="loja-check-rede">📍 ${rede}</div>`;
+    porRede[rede].forEach(l=>{
+      const marcado=lojasSelecionadas.includes(l.cod);
+      const item=document.createElement('label');
+      item.className='loja-check-item';
+      item.dataset.busca=`${l.cod} ${l.nome}`.toLowerCase(); // campo de busca
+      item.innerHTML=`<input type="checkbox" value="${l.cod}" ${marcado?'checked':''}
+        onchange="atualizarContadorLojas()">
+        <span>${l.nome} <span class="cod-erp">[${l.cod}]</span></span>`;
+      grupo.appendChild(item);
+    });
+    wrap.appendChild(grupo);
+  });
+
+  atualizarContadorLojas();
+}
+
+function filtrarCheckboxLojas(termo) {
+  const t=termo.toLowerCase().trim();
+  let visiveis=0, total=0;
+  document.querySelectorAll('#prom-lojas-wrap .loja-check-item').forEach(item=>{
+    total++;
+    const match=!t || item.dataset.busca.includes(t);
+    item.style.display=match?'flex':'none';
+    if(match) visiveis++;
+  });
+  // Oculta grupo inteiro se nenhum item visível
+  document.querySelectorAll('#prom-lojas-wrap .loja-check-grupo').forEach(g=>{
+    const algumVisivel=Array.from(g.querySelectorAll('.loja-check-item')).some(i=>i.style.display!=='none');
+    g.style.display=algumVisivel?'block':'none';
+  });
+  // Atualiza contagem de resultados
+  const countEl=document.getElementById('lojas-busca-count');
+  countEl.textContent=t?`${visiveis} de ${total}`:'';
+  atualizarContadorLojas();
+}
+
+function atualizarContadorLojas() {
+  const total   =document.querySelectorAll('#prom-lojas-wrap input[type=checkbox]').length;
+  const marcados=document.querySelectorAll('#prom-lojas-wrap input[type=checkbox]:checked').length;
+  const el=document.getElementById('lojas-selecionadas-count');
+  el.textContent=`${marcados} de ${total} selecionada(s)`;
+}
+
+function marcarTodasVisiveis(marcar) {
+  document.querySelectorAll('#prom-lojas-wrap .loja-check-item').forEach(item=>{
+    if(item.style.display==='none') return; // respeita filtro ativo
+    const cb=item.querySelector('input[type=checkbox]');
+    if(cb) cb.checked=marcar;
+  });
+  atualizarContadorLojas();
+}
+
+function getLojasChecadas() {
+  return Array.from(document.querySelectorAll('#prom-lojas-wrap input[type=checkbox]:checked')).map(c=>c.value);
+}
+
+async function salvarPromotor() {
+  const ger=document.getElementById('inp-prom-ger').value;
+  const nome=document.getElementById('inp-prom-nome').value.trim();
+  const idx=parseInt(document.getElementById('inp-prom-idx').value);
+  const gerOrig=document.getElementById('inp-prom-ger-orig').value;
+  const lojas=getLojasChecadas();
+  if(!ger)  return toast('Selecione o gerente');
+  if(!nome) return toast('Digite o nome do promotor');
+  if(!lojas.length) return toast('Selecione ao menos uma loja');
+  const ok=await chamarSheets({acao:'salvarPromotor',ger,nome,lojas,idx,gerOrig});
+  if(ok) cancelarProm();
+}
+function editarPromotor(ger,i) {
+  const p=DADOS.promotores[ger][i];
+  const pNome=(typeof p==='object')?p.nome:p;
+  const pLojas=(typeof p==='object'&&p.lojas)?p.lojas:[];
+  document.getElementById('inp-prom-ger').value=ger;
+  document.getElementById('inp-prom-nome').value=pNome;
+  document.getElementById('inp-prom-idx').value=i;
+  document.getElementById('inp-prom-ger-orig').value=ger;
+  document.getElementById('form-prom-titulo').textContent='Editar promotor';
+  atualizarCheckboxLojas(pLojas);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function removerPromotor(ger,i) {
+  const p=DADOS.promotores[ger][i];
+  const pNome=(typeof p==='object')?p.nome:p;
+  if(!confirm(`Remover "${pNome}"?`)) return;
+  await chamarSheets({acao:'removerPromotor',ger,idx:i});
+}
+function cancelarProm() {
+  document.getElementById('inp-prom-ger').value='';
+  document.getElementById('inp-prom-nome').value='';
+  document.getElementById('inp-prom-idx').value='-1';
+  document.getElementById('inp-prom-ger-orig').value='';
+  document.getElementById('form-prom-titulo').textContent='Novo promotor';
+  document.getElementById('prom-lojas-wrap').innerHTML='<span style="color:var(--cinza-txt);font-size:12px">Selecione o gerente primeiro</span>';
+  document.getElementById('prom-lojas-busca-wrap').style.display='none';
+  document.getElementById('prom-lojas-acoes').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — LOJAS
+// ═══════════════════════════════════════════════════════════════════════
+function onRedeSelChange() {
+  const sel=document.getElementById('inp-rede-sel').value;
+  const novaWrap=document.getElementById('inp-rede-nova-wrap');
+  const hidden=document.getElementById('inp-rede-nome');
+  if(sel==='__nova__') {
+    novaWrap.style.display='block';
+    document.getElementById('inp-rede-nova').focus();
+    hidden.value='';
+  } else {
+    novaWrap.style.display='none';
+    hidden.value=sel;
+  }
+}
+
+function getRedeAtual() {
+  const sel=document.getElementById('inp-rede-sel').value;
+  if(sel==='__nova__') return document.getElementById('inp-rede-nova').value.trim();
+  return sel;
+}
+
+function recarregarSelectRede(valorAtual='') {
+  const sel=document.getElementById('inp-rede-sel');
+  sel.innerHTML='<option value="">— Selecione ou cadastre nova —</option>';
+  DADOS.redes.forEach(r=>sel.appendChild(opt(r,r)));
+  sel.appendChild(opt('__nova__','✚ Cadastrar nova rede...'));
+  // Restaura valor se existir
+  if(valorAtual) {
+    sel.value=valorAtual;
+    if(sel.value!==valorAtual) { // era nova rede que ainda não existia
+      sel.value='__nova__';
+      document.getElementById('inp-rede-nova-wrap').style.display='block';
+      document.getElementById('inp-rede-nova').value=valorAtual;
+    }
+  }
+}
+
+function renderLojas() {
+  const filtroRede=document.getElementById('filtro-rede').value;
+  const filtroBusca=(document.getElementById('filtro-loja-busca')?.value||'').toLowerCase().trim();
+  const ul=document.getElementById('lista-lojas'); ul.innerHTML='';
+  let total=0, visiveis=0;
+  DADOS.redes.forEach(r=>{
+    if(filtroRede&&r!==filtroRede) return;
+    (DADOS.lojas[r]||[]).forEach((l,i)=>{
+      total++;
+      const lNome=(typeof l==='object')?l.nome:l;
+      const lCod =(typeof l==='object')?l.cod:'—';
+      // Aplica filtro de texto: código ou nome
+      if(filtroBusca && !lCod.toLowerCase().includes(filtroBusca) && !lNome.toLowerCase().includes(filtroBusca)) return;
+      visiveis++;
+      const li=document.createElement('li'); li.className='adm-item';
+      li.innerHTML=`<div><div class="nome">${lNome}</div><div class="sub">Rede: ${r} · Cód ERP: <strong>${lCod}</strong></div></div>
+        <div class="adm-acoes">
+          <button class="btn-adm-ed" onclick="editarLoja('${r}',${i})">✏️</button>
+          <button class="btn-adm-rm" onclick="removerLoja('${r}',${i})">🗑️</button>
+        </div>`;
+      ul.appendChild(li);
+    });
+  });
+  // Contador de resultados
+  const countEl=document.getElementById('filtro-loja-count');
+  if(countEl) countEl.textContent=filtroBusca||filtroRede ? `${visiveis} de ${total}` : '';
+  if(!ul.children.length) ul.innerHTML='<li style="color:var(--cinza-txt);font-size:13px;padding:10px 0">Nenhuma loja encontrada.</li>';
+}
+async function salvarLoja() {
+  const rede=getRedeAtual();
+  const cod =document.getElementById('inp-loja-cod').value.trim();
+  const loja=document.getElementById('inp-loja-nome').value.trim();
+  const idx=parseInt(document.getElementById('inp-loja-idx').value);
+  const redeOrig=document.getElementById('inp-rede-orig').value;
+  if(!rede) return toast('Selecione ou digite o nome da rede');
+  if(!cod)  return toast('Digite o código ERP da loja');
+  if(!loja) return toast('Digite o nome da loja');
+  const ok=await chamarSheets({acao:'salvarLoja',rede,loja:{cod,nome:loja},idx,redeOrig});
+  if(ok) cancelarLoja();
+}
+function editarLoja(rede,i) {
+  const l=DADOS.lojas[rede][i];
+  const lNome=(typeof l==='object')?l.nome:l;
+  const lCod =(typeof l==='object')?l.cod :'';
+  recarregarSelectRede(rede);
+  document.getElementById('inp-rede-nova-wrap').style.display='none';
+  document.getElementById('inp-loja-cod').value=lCod;
+  document.getElementById('inp-loja-nome').value=lNome;
+  document.getElementById('inp-loja-idx').value=i;
+  document.getElementById('inp-rede-orig').value=rede;
+  document.getElementById('inp-rede-nome').value=rede;
+  document.getElementById('form-loja-titulo').textContent='Editar loja';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function removerLoja(rede,i) {
+  const l=DADOS.lojas[rede][i];
+  const lNome=(typeof l==='object')?l.nome:l;
+  if(!confirm(`Remover "${lNome}"?`)) return;
+  await chamarSheets({acao:'removerLoja',rede,idx:i});
+}
+function cancelarLoja() {
+  document.getElementById('inp-rede-sel').value='';
+  document.getElementById('inp-rede-nova').value='';
+  document.getElementById('inp-rede-nova-wrap').style.display='none';
+  document.getElementById('inp-rede-nome').value='';
+  document.getElementById('inp-loja-cod').value='';
+  document.getElementById('inp-loja-nome').value='';
+  document.getElementById('inp-loja-idx').value='-1';
+  document.getElementById('inp-rede-orig').value='';
+  document.getElementById('form-loja-titulo').textContent='Nova loja';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — SKUs
+// ═══════════════════════════════════════════════════════════════════════
+function renderSkus() {
+  const ul=document.getElementById('lista-skus'); ul.innerHTML='';
+  if(!DADOS.skus.length){ ul.innerHTML='<li style="color:var(--cinza-txt);font-size:13px;padding:10px 0">Nenhum produto cadastrado.</li>'; return; }
+  DADOS.skus.forEach((s,i)=>{
+    const li=document.createElement('li'); li.className='adm-item';
+    li.innerHTML=`<div><div class="nome">${s.nome}</div><div class="sub">${s.cod}</div></div>
+      <div class="adm-acoes">
+        <button class="btn-adm-ed" onclick="editarSku(${i})">✏️</button>
+        <button class="btn-adm-rm" onclick="removerSku(${i})">🗑️</button>
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+async function salvarSku() {
+  const cod=document.getElementById('inp-sku-cod').value.trim().toUpperCase();
+  const nome=document.getElementById('inp-sku-nome').value.trim();
+  const idx=parseInt(document.getElementById('inp-sku-idx').value);
+  if(!cod) return toast('Digite o código SKU');
+  if(!nome) return toast('Digite a descrição do produto');
+  const ok=await chamarSheets({acao:'salvarSku',cod,nome,idx});
+  if(ok) cancelarSku();
+}
+function editarSku(i) {
+  document.getElementById('inp-sku-cod').value=DADOS.skus[i].cod;
+  document.getElementById('inp-sku-nome').value=DADOS.skus[i].nome;
+  document.getElementById('inp-sku-idx').value=i;
+  document.getElementById('form-sku-titulo').textContent='Editar produto';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function removerSku(i) {
+  if(!confirm(`Remover "${DADOS.skus[i].nome}"?`)) return;
+  await chamarSheets({acao:'removerSku',idx:i});
+}
+function cancelarSku() {
+  document.getElementById('inp-sku-cod').value='';
+  document.getElementById('inp-sku-nome').value='';
+  document.getElementById('inp-sku-idx').value='-1';
+  document.getElementById('form-sku-titulo').textContent='Novo produto';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — GERENCIAL
+// ═══════════════════════════════════════════════════════════════════════
+function renderGerencial() {
+  renderGerencialKPIs();
+  renderGerencialPorGerente();
+  renderGerencialPorPromotor('');
+  document.getElementById('ger-busca-prom').value='';
+}
+
+function renderGerencialKPIs() {
+  // Conta totais globais
+  let totalProm=0, totalLojas=0;
+  DADOS.gerentes.forEach(g=>{
+    totalProm+=(DADOS.promotores[g]||[]).length;
+  });
+  DADOS.redes.forEach(r=>{ totalLojas+=(DADOS.lojas[r]||[]).length; });
+
+  document.getElementById('ger-totais').innerHTML=`
+    <div class="ger-kpi">
+      <div class="val">${DADOS.gerentes.length}</div>
+      <div class="lbl">Gerentes</div>
+    </div>
+    <div class="ger-kpi">
+      <div class="val">${totalProm}</div>
+      <div class="lbl">Promotores</div>
+    </div>
+    <div class="ger-kpi">
+      <div class="val">${totalLojas}</div>
+      <div class="lbl">Lojas</div>
+    </div>`;
+}
+
+function renderGerencialPorGerente() {
+  const wrap=document.getElementById('ger-por-gerente');
+  if(!DADOS.gerentes.length){
+    wrap.innerHTML='<div class="ger-vazio">Nenhum gerente cadastrado.</div>';
+    return;
+  }
+  wrap.innerHTML='';
+  DADOS.gerentes.forEach(g=>{
+    const proms=DADOS.promotores[g]||[];
+    // Conta lojas únicas vinculadas aos promotores deste gerente
+    const codsLojas=new Set();
+    proms.forEach(p=>{
+      const pLojas=(typeof p==='object'&&p.lojas)?p.lojas:[];
+      pLojas.forEach(c=>codsLojas.add(c));
+    });
+
+    const card=document.createElement('div');
+    card.className='ger-card';
+    card.innerHTML=`
+      <div class="ger-card-hdr">
+        <span class="nome">👔 ${g}</span>
+        <div class="badges">
+          <span class="ger-badge">👤 ${proms.length} promotor(es)</span>
+          <span class="ger-badge">🏪 ${codsLojas.size} loja(s)</span>
+        </div>
+      </div>
+      <div class="ger-card-body">
+        ${proms.length
+          ? proms.map(p=>{
+              const pNome=(typeof p==='object')?p.nome:p;
+              const pLojas=(typeof p==='object'&&p.lojas)?p.lojas:[];
+              return `<div class="ger-stat-row">
+                <span class="lbl">👤 ${pNome}</span>
+                <span class="val">${pLojas.length} loja(s)</span>
+              </div>`;
+            }).join('')
+          : '<div class="prom-sem-lojas">Nenhum promotor cadastrado neste gerente.</div>'
+        }
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+function renderGerencialPorPromotor(filtro) {
+  const wrap=document.getElementById('ger-por-promotor');
+  wrap.innerHTML='';
+  const t=filtro.toLowerCase().trim();
+  let total=0;
+
+  // Mapa de código → objeto loja para lookup rápido
+  const mapaLojas={};
+  DADOS.redes.forEach(r=>{
+    (DADOS.lojas[r]||[]).forEach(l=>{
+      const lNome=(typeof l==='object')?l.nome:l;
+      const lCod =(typeof l==='object')?l.cod:'';
+      if(lCod) mapaLojas[lCod]={nome:lNome,rede:r,cod:lCod};
+    });
+  });
+
+  DADOS.gerentes.forEach(g=>{
+    (DADOS.promotores[g]||[]).forEach((p,pi)=>{
+      const pNome=(typeof p==='object')?p.nome:p;
+      const pLojas=(typeof p==='object'&&p.lojas)?p.lojas:[];
+      // Filtro de texto
+      if(t && !pNome.toLowerCase().includes(t) && !g.toLowerCase().includes(t)) return;
+      total++;
+
+      const uid=`pcard-${g.replace(/\s/g,'')}-${pi}`;
+      const card=document.createElement('div');
+      card.className='prom-card';
+      card.dataset.busca=`${pNome} ${g}`.toLowerCase();
+
+      const lojasHtml=pLojas.length
+        ? pLojas.map(cod=>{
+            const l=mapaLojas[cod];
+            return l
+              ? `<div class="prom-loja-item">
+                  <span class="prom-loja-cod">${l.cod}</span>
+                  <span class="prom-loja-nome">${l.nome} <span style="color:var(--cinza-txt)">(${l.rede})</span></span>
+                 </div>`
+              : `<div class="prom-loja-item"><span class="prom-loja-cod">${cod}</span><span class="prom-loja-nome" style="color:var(--cinza-txt)">Loja não encontrada</span></div>`;
+          }).join('')
+        : '<div class="prom-sem-lojas">Nenhuma loja vinculada.</div>';
+
+      card.innerHTML=`
+        <div class="prom-card-hdr" onclick="togglePromCard('${uid}')">
+          <div>
+            <div class="pnome">${pNome}</div>
+            <div class="psub">Gerente: ${g} · ${pLojas.length} loja(s)</div>
+          </div>
+          <span class="ptoggle">▾</span>
+        </div>
+        <div class="prom-card-body" id="${uid}">
+          ${lojasHtml}
+        </div>`;
+      wrap.appendChild(card);
+    });
+  });
+
+  if(!total) wrap.innerHTML='<div class="ger-vazio">Nenhum promotor encontrado.</div>';
+}
+
+function filtrarGerencialProm(termo) {
+  renderGerencialPorPromotor(termo);
+}
+
+function togglePromCard(uid) {
+  const body=document.getElementById(uid);
+  const hdr=body.previousElementSibling;
+  const aberto=body.classList.toggle('open');
+  hdr.classList.toggle('open', aberto);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN — CONFIG
+// ═══════════════════════════════════════════════════════════════════════
+function alterarSenha() {
+  const at=document.getElementById('adm-senha-atual').value;
+  const nv=document.getElementById('adm-senha-nova').value;
+  const cf=document.getElementById('adm-senha-conf').value;
+  if(at!==getSenha()) return toast('Senha atual incorreta');
+  if(!nv||nv.length<4) return toast('Nova senha muito curta (mín. 4 caracteres)');
+  if(nv!==cf) return toast('As senhas não coincidem');
+  LS.set('ng_senha',nv);
+  ['adm-senha-atual','adm-senha-nova','adm-senha-conf'].forEach(id=>document.getElementById(id).value='');
+  toast('Senha alterada com sucesso ✓');
+}
+
+function abrirSecao(nome) {
+  document.querySelectorAll('.admin-secao').forEach(s=>s.classList.remove('ativa'));
+  document.getElementById(`sec-${nome}`).classList.add('ativa');
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('ativo'));
+  event.target.classList.add('ativo');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
